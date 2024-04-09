@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Detection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://unpkg.com/pattern.css" rel="stylesheet">
+
+    <style>
+        /* 全局样式 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000; /* 黑色背景 */
+            color: #ffc0cb; /* 浅粉色字体 */
+            padding-top: 80px; /* 确保内容不被导航栏遮挡 */
+        }
+
+        /* 导航栏样式 */
+        .navbar {
+            background-color: #333;
+            padding: 10px 20px;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            height: 80px; /* Reduced navbar height */
+            display: flex;
+            align-items: center; /* 垂直居中 */
+        }
+
+        .navbar-brand {
+            color: #ffc0cb; /* 黑色字体 */
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+            margin-right: auto;
+        }
+
+        .nav-menu {
+            float: right;
+        }
+
+        .nav-menu li {
+            display: inline-block;
+            margin-left: 20px;
+        }
+
+        .nav-menu li a {
+            color: #000; /* 黑色字体 */
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold; /* 加粗 */
+        }
+
+        /* 容器样式 */
+        .container {
+            max-width: 1000px;
+            margin: 20px auto 20px; /* 调整上边距以避免被导航栏遮挡 */
+            padding: 60px;
+            background-color: #171717; /* 黑色背景 */
+            display: flex;
+            flex-direction: column; /* 垂直排列内部元素 */
+            align-items: center; /* 水平居中 */
+            border: 5px solid #ffc0cb; /* 粉色大边框 */
+            border-radius: 20px; /* 边框圆角 */
+        }
+
+        h1 {
+            color: #ffc0cb; /* 浅粉色标题字体 */
+            margin-bottom: 30px;
+            text-align: center;
+            border-bottom: 2px solid #ffc0cb; /* 粉色底部边框 */
+            padding-bottom: 5px; /* 底部边框间距 */
+        }
+
+        /* 上传按钮样式 */
+        .upload-btn {
+            display: inline-block; /* 调整为行内块元素 */
+            margin: 20px 20px; /* 左右间距调整为 10px */
+            padding: 15px 30px; /* 增加按钮大小 */
+            background-color: #ffc0cb; /* 浅粉色背景 */
+            color: #000; /* 黑色字体 */
+            border: 2px solid #ffc0cb; /* 浅粉色边框 */
+            border-radius: 10px; /* 边框圆角 */
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-align: center;
+        }
+
+        .upload-btn i {
+            margin-right: 5px;
+        }
+
+        .upload-btn:hover {
+            background-color: #ff69b4; /* 淡粉色悬停颜色 */
+        }
+
+        /* 图片展示框样式 */
+        .image-box {
+            width: 450px;
+            height: 400px; /* 正方形 */
+            background-color: #333; /* 灰色背景 */
+            margin-top: 20px;
+            border: 2px solid #ffc0cb; /* 浅粉色边框 */
+            background-size: cover; /* 让背景图片填充整个框 */
+            background-position: center; /* 图片居中显示 */
+        }
+
+        /* 结果展示框样式 */
+        .result-box {
+            width: 450px;
+            height: 400px; /* 正方形 */
+            background-color: #333; /* 灰色背景 */
+            margin-top: 20px;
+            border: 2px solid #ffc0cb; /* 浅粉色边框 */
+            overflow: auto; /* 添加滚动条 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 表格样式 */
+        table {
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ffc0cb; /* 浅粉色边框 */
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #333; /* 灰色背景 */
+            color: #ffc0cb; /* 浅粉色字体 */
+        }
+
+        /* 加载器样式 */
+        .loader {
+            border: 4px solid #f3f3f3; /* 浅灰色边框 */
+            border-top: 4px solid #3498db; /* 蓝色边框 */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: auto; /* 居中 */
+            display: none; /* 初始隐藏 */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <div class="navbar">
+        <span class="navbar-brand">April 3, 2024</span>
+        <ul class="nav-menu">
+            <li><a href="#">Home</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><form action="/face_recognition" method="get"><input type="submit" value="Switch to Face Recognition" class="upload-btn"></form></li>
+            <li><form action="/face_compare" method="get"><input type="submit" value="Switch to Face compare" class="upload-btn"></form></li>
+        </ul>
+    </div>
+
+    <!-- 内容 -->
+    <div class="container">
+        <h1>Object Detection</h1>
+
+        <!-- 按钮 -->
+        <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+            <label for="fileInput" class="upload-btn"><i class="fas fa-image"></i> Choose Image</label>
+            <input type="file" id="fileInput" accept="image/*" onchange="displayImage()" style="display: none;">
+            <button onclick="uploadImage()" class="upload-btn" id="uploadBtn"><i class="fas fa-upload"></i> Upload</button>
+        </div>
+
+        <!-- 图片展示框和结果展示框 -->
+        <div style="display: flex; justify-content: space-between; width: 100%;">
+            <div class="image-box"></div>
+            <div style="width: 20px;"></div> <!-- 间隔 -->
+            <div class="result-box"></div>
+        </div>
+
+        <div id="loader" class="loader"></div>
+    </div>
+    <script>
+        function displayImage() {
+            var fileInput = document.getElementById('fileInput');
+            var file = fileInput.files[0];
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.querySelector('.image-box').style.backgroundImage = `url('${e.target.result}')`;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function uploadImage() {
+            var loader = document.getElementById('loader');
+            loader.style.display = 'block'; // 显示加载动画
+
+            var fileInput = document.getElementById('fileInput');
+            var file = fileInput.files[0];
+            var formData = new FormData();
+            formData.append('file', file);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload', true);
+            xhr.onload = function() {
+                loader.style.display = 'none'; // 隐藏加载动画
+
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.hasOwnProperty('error')) {
+                        alert(response.error);
+                    } else {
+                        var responseData = JSON.parse(response.response); // 解析 response.response 字符串为 JSON 对象
+                        var fileList = responseData.data.fileList[0]; // 获取文件列表中的第一个文件对象
+                        var labels = fileList.labels;
+                        var rates = fileList.rates;
+
+                        // 构建表格内容
+                        var tableContent = "<table>";
+                        tableContent += "<tr><th>可能物体</th><th>概率</th></tr>";
+                        for (var i = 0; i < labels.length; i++) {
+                            tableContent += "<tr>";
+                            tableContent += "<td>" + labels[i] + "</td>";
+                            tableContent += "<td>" + rates[i] + "</td>";
+                            tableContent += "</tr>";
+                        }
+                        tableContent += "</table>";
+
+                        // 在结果展示框中显示表格
+                        document.querySelector('.result-box').innerHTML = tableContent;
+                    }
+                } else {
+                    alert('Error occurred while uploading image.');
+                }
+            };
+            xhr.send(formData);
+        }
+
+    </script>
+    <footer style="text-align: center; padding: 20px; background-color: #333; color: #fff; position: fixed; bottom: 0; width: 100%;">
+        &copy; 2024 Steph. All rights reserved.
+    </footer>
+</body>
+</html>
